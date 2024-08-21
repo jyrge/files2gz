@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, sys, argparse, logging, time, shutil, gzip
+import os, sys, argparse, logging, time, shutil, gzip, signal
 from pathlib import Path
 from datetime import datetime, timezone
 from watchdog.observers import Observer
@@ -49,6 +49,20 @@ def setupLogging(level, dir):
                 e.filename, e.strerror
             )
         )
+
+
+# Handle signals
+class Terminator:
+    terminate = False
+
+    def __init__(self):
+        # Listen to SIGTERM and SIGINT and call handler.
+        signal.signal(signal.SIGTERM, self._terminate)
+        signal.signal(signal.SIGINT, self._terminate)
+
+    def _terminate(self, signum, frame):
+        logger.info("Received {}".format(signal.Signals(signum).name))
+        self.terminate = True
 
 
 # Custom event handler class for watchdog observer
@@ -167,12 +181,11 @@ def main():
     observer.start()
     logger.info('File watching started in "{}"'.format(sourceDir))
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        logger.info("Received interrupt signal")
-        observer.stop()
+    # Keep running until receiving signal to terminate.
+    terminator = Terminator()
+    while not terminator.terminate:
+        time.sleep(1)
+    observer.stop()
 
     # Wait for the observer to finish.
     observer.join()
