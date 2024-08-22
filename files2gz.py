@@ -11,11 +11,23 @@ logger = logging.getLogger(__name__)
 
 
 def setupLogging(level, dir):
-    logLevel = {
-        "debug": logging.DEBUG,
-        "info": logging.INFO,
-        "error": logging.ERROR,
-    }.get(level, logging.INFO)
+    logLevel = logging.INFO
+    if isinstance(level, str):
+        match level.lower():
+            case "debug":
+                logLevel = logging.DEBUG
+            case "info":
+                logLevel = logging.INFO
+            case "warning":
+                logLevel = logging.WARNING
+            case "warn":
+                logLevel = logging.WARNING
+            case "error":
+                logLevel = logging.ERROR
+            case "critical":
+                logLevel = logging.CRITICAL
+            case "fatal":
+                logLevel = logging.FATAL
     logger.setLevel(logLevel)
 
     # Set time in log messages to UTC, format messages.
@@ -73,7 +85,7 @@ class CompressingFileHandler(PatternMatchingEventHandler):
         self._target = target
 
     def on_created(self, event):
-        # Derive relative path for a input file in the watched directory and create a corresponding target path.
+        # Derive relative path for an input file in the watched directory and create a corresponding target path.
         absoluteSrcPath = Path(event.src_path).resolve()
         relativePath = absoluteSrcPath.relative_to(self._source)
         targetPath = self._target.joinpath(relativePath)
@@ -110,13 +122,11 @@ def main():
     )
     parser.add_argument(
         "--source",
-        required=True,
         type=str,
         help="path to the directory being monitored",
     )
     parser.add_argument(
         "--target",
-        required=True,
         type=str,
         help="path to the target directory for compressed files",
     )
@@ -127,12 +137,24 @@ def main():
     )
     parser.add_argument(
         "--log-level",
-        choices=["debug", "info", "error"],
         help="minimum log level for the events being logged",
+    )
+
+    # Get values for arguments from env variables, as this makes life with Docker easier.
+    parser.set_defaults(
+        source=os.environ.get("FILES2GZ_SOURCE_DIR"),
+        target=os.environ.get("FILES2GZ_TARGET_DIR"),
+        log_dir=os.environ.get("FILES2GZ_LOG_DIR"),
+        log_level=os.environ.get("FILES2GZ_LOG_LEVEL"),
     )
 
     try:
         args = vars(parser.parse_args())
+
+        # As the required parameters can be passed via env variables as well,
+        # the "required" flag in add_argument method can't be used.
+        if not args["source"] or not args["target"]:
+            parser.error("the following arguments are required: --source, --target")
 
         sourceDir = Path(args["source"]).resolve()
         targetDir = Path(args["target"] or "./target").resolve()
@@ -143,16 +165,11 @@ def main():
         if targetDir.is_relative_to(sourceDir) or (
             logDir and logDir.is_relative_to(sourceDir)
         ):
-            raise ValueError
+            parser.error(
+                "target or log directory can not be a subdirectory of the directory being watched"
+            )
 
         Path(targetDir).mkdir(parents=True, exist_ok=True)
-
-    except ValueError:
-        print(
-            "Error: target or log directory can not be a subdirectory of the directory being watched.",
-            file=sys.stderr,
-        )
-        sys.exit(os.EX_USAGE)
 
     # Catch any possible path resolve errors, such as loops.
     except RuntimeError as e:
