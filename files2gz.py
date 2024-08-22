@@ -156,11 +156,12 @@ def main():
         if not args["source"] or not args["target"]:
             parser.error("the following arguments are required: --source, --target")
 
-        sourceDir = Path(args["source"]).resolve()
-        targetDir = Path(args["target"] or "./target").resolve()
+        # sourceDir must exist and be accessible
+        sourceDir = Path(args["source"]).resolve(strict=True)
+        targetDir = Path(args["target"]).resolve()
         logDir = Path(args["log_dir"]).resolve() if args["log_dir"] else None
 
-        # Raise exception, if either the target or log directories are descendants of
+        # Abort if either the target or log directories are descendants of
         # the directory being watched.
         if targetDir.is_relative_to(sourceDir) or (
             logDir and logDir.is_relative_to(sourceDir)
@@ -181,9 +182,7 @@ def main():
 
     except OSError as e:
         print(
-            'Error: Unable to create target directory "{}": {}'.format(
-                e.filename, e.strerror
-            ),
+            'Error: Unable to access directory "{}": {}'.format(e.filename, e.strerror),
             file=sys.stderr,
         )
         sys.exit(os.EX_IOERR)
