@@ -5,7 +5,7 @@ ENV FILES2GZ_SOURCE_DIR="/app/source" \
     FILES2GZ_TARGET_DIR="/app/target" \
     FILES2GZ_LOG_DIR="/app/logs" \
     FILES2GZ_LOG_LEVEL="info"
-
-COPY files2gz.py requirements.txt /app/
+COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
+COPY files2gz.py /app/
 ENTRYPOINT [ "python", "files2gz.py" ]
