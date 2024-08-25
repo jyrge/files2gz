@@ -1,0 +1,15 @@
+- name: Build the service
+  hosts: all
+  tasks:
+    - name: Clone the repository
+      ansible.builtin.git:
+        repo: https://github.com/jyrge/files2gz
+        clone: true
+        dest: "{{ ansible_env.HOME }}/files2gz"
+
+    - name: Build image
+      community.docker.docker_image:
+        name: files2gz
+        build:
+          path: "{{ ansible_env.HOME }}/files2gz"
+        source: build

@@ -1,0 +1,10 @@
+# Run this play to execute the whole process including
+# setting up the host, building the image and starting the service.
+- name: Include setup playbook
+  ansible.builtin.import_playbook: setup.yaml
+
+- name: Include build playbook
+  ansible.builtin.import_playbook: build.yaml
+
+- name: Include run playbook
+  ansible.builtin.import_playbook: run.yaml

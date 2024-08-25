@@ -1,0 +1,39 @@
+- name: "Run the service"
+  hosts: all
+  tasks:
+    - name: Load paths for directories from variables
+      ansible.builtin.include_vars: vars.yaml
+
+    - name: Create the directories for mount points
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0755
+      loop:
+        - "{{ source_dir }}"
+        - "{{ target_dir }}"
+        - "{{ log_dir }}"
+    
+    - name: Get info for the current user
+      ansible.builtin.getent:
+        database: passwd
+        key: "{{ ansible_user }}"
+    - ansible.builtin.debug:
+        var: ansible_facts.getent_passwd
+
+    - name: Start the container
+      community.docker.docker_container:
+        name: files2gz
+        image: files2gz
+        user: "{{ getent_passwd[ansible_user].1 }}"
+        state: started
+        mounts:
+          - type: bind
+            source: "{{ source_dir }}"
+            target: /app/source
+          - type: bind
+            source: "{{ target_dir }}"
+            target: /app/target
+          - type: bind
+            source: "{{ log_dir }}"
+            target: /app/logs

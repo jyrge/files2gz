@@ -1,0 +1,39 @@
+- name: Setup the hosts for running the service
+  hosts: all
+  tasks:
+    - name: Check and install dependencies
+      ansible.builtin.package:
+        name: "{{ packages[ansible_distribution] }}"
+        state: present
+      become: true
+      vars:
+        packages:
+          Debian:
+            - docker.io
+            - git
+          Ubuntu:
+            - docker.io
+            - git
+          Arch Linux:
+            - docker
+            - git
+
+    - name: Ensure that Docker daemon is enabled and started
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+      become: true
+
+    - name: Add user to docker group
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+      become: true
+      notify:
+        - Reset connection, if user was added to docker group
+
+  handlers:
+    - name: Reset connection, if user was added to docker group
+      ansible.builtin.meta: reset_connection

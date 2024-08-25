@@ -166,3 +166,11 @@ cython_debug/
 
 # Logs
 logs/
+
+# Target files
+target/
+
+# Ansible inventory and vars
+ansible-files/inventory.yaml
+ansible-files/inventory.ini
+ansible-files/vars.yaml

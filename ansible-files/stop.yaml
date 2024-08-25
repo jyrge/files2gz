@@ -1,0 +1,8 @@
+- name: Stop the service
+  hosts: all
+  tasks:
+    - name: Stop and remove the container
+      community.docker.docker_container:
+        name: files2gz
+        image: files2gz
+        state: absent

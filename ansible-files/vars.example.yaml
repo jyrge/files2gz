@@ -1,0 +1,5 @@
+# Copy the contents of this file to "vars.yaml" and replace the values
+# of the variables with your own values.
+source_dir: "{{ ansible_env.HOME }}/test"
+target_dir: "{{ ansible_env.HOME }}/target"
+log_dir: "{{ ansible_env.HOME }}/logs"
