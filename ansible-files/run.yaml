@@ -37,3 +37,5 @@
           - type: bind
             source: "{{ log_dir }}"
             target: /app/logs
+        env:
+          FILES2GZ_LOG_LEVEL: "{{ log_level }}"

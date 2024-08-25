@@ -1,5 +1,5 @@
 # Copy the contents of this file to "inventory.yaml" and set up your
-# own host configuration here.
+# own host configuration there.
 all:
   hosts:
     files2gz_server:
@@ -7,7 +7,10 @@ all:
       ansible_user: user # substitute with the user name used for logging in to the host
       # Consider using Vault instead of plaintext password
       # https://docs.ansible.com/ansible/latest/vault_guide/vault_encrypting_content.html
+      # Comment out if not applicable
       ansible_password: pass # substitute with the password or encrypted Vault content (if using password)
+      # Comment out if not applicable
       ansible_ssh_private_key_file: ~/.ssh/id_rsa # substitute with the private SSH key (if using)
       ansible_become_method: sudo
-      ansible_become_pass: "{{ ansible_password }}" # if using password
+      # Comment out if not applicable
+      ansible_become_pass: "{{ ansible_password }}" # password for privilege escalation, if using password

@@ -3,3 +3,4 @@
 source_dir: "{{ ansible_env.HOME }}/test"
 target_dir: "{{ ansible_env.HOME }}/target"
 log_dir: "{{ ansible_env.HOME }}/logs"
+log_level: info
